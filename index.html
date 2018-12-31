@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+	<link 
+		href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" 
+		rel="stylesheet" 
+		integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" 
+		crossorigin="anonymous">
+	<link 
+		href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" 
+		rel="stylesheet" 
+		integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" 
+		crossorigin="anonymous">
+	
+	<style>
+	
+		#notification-container {
+			position: fixed;
+			bottom: 10px;
+			right: 10px;
+			box-shadow: 3px 2px 8px 0px rgba(0, 0, 0, 0.2);
+		}
+		
+		#notification-text {
+			max-width: 400px;
+		}
+		
+		#notification-icon {
+			margin-right: 17px;
+		}
+		
+		#notification-action {
+			margin-left: 24px;
+		}
+		
+		#notification-close {
+			margin: 8px;
+		}
+	
+	</style>
+
+</head>
+
+<body>
+	<div>Test</div>
+	
+	<i class="fa fa-exclamation-circle text-danger fa-3x align-middle"></i>
+	<i class="fa fa-info-circle fa-3x text-primary align-middle"></i>
+	
+	<div id="notification-container" style="display: none !important;" class="alert alert-light d-flex flex-row" role="alert">
+		<i id="notification-icon" class="fa fa-check-circle fa-3x text-success align-self-center"></i>
+		<div id="notification-text" class="align-self-center">
+			A simple primary alert—check it out!
+		</div>
+		<div class="align-self-center">
+			<button id="notification-action" type="button" class="btn btn-light">Cancel</button>
+			<button id="notification-close" type="button" style="display: none;" class="close" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+		</div>
+	</div>
+	
+	<script
+		src="https://code.jquery.com/jquery-3.3.1.js"
+		integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+		crossorigin="anonymous"></script>
+	<script 
+		src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" 
+		integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" 
+		crossorigin="anonymous"></script>
+	
+	<script type="application/javascript">
+		
+		function Notification() {
+			_this = this;
+			
+			_this.defaultOptions = {
+				duration: 2000,
+				type: 'info'
+			};
+			
+			_this.notificationContainer = $("#notification-container");
+			_this.notificationIcon = $("#notification-icon");
+			_this.notificationText = $("#notification-text");
+			_this.notificationAction = $("#notification-action");
+			_this.notificationClose = $("#notification-close");
+			
+			_this.currentOptions = undefined;
+			
+			_this.isVisible = false;
+			
+			_this.notify = function(message, options) {
+				options = Object.assign({}, _this.defaultOptions, options);
+				_this.currentOptions = options;
+				
+				if (_this.isVisible) {
+					_this.dismiss();
+				}
+				
+				_this.setIcon(options.type);
+				_this.setText(message);
+				_this.setAction(options.action);
+				_this.setCloseButton(options);
+				
+				_this.notificationContainer.css('visibility', 'visible');
+				_this.notificationContainer
+					.fadeIn(300, function() {_this.isVisible = true;})
+					.delay(options.duration)
+					.fadeOut(500, function() {
+						_this.notificationContainer.css('visibility', 'hidden');
+						_this.isVisible = false;
+						_this.currentOptions = undefined;
+					});
+			};
+			
+			_this.dismiss = function() {
+				_this.notificationContainer.clearQueue();
+				_this.notificationContainer
+					.fadeOut(100, function() {
+						_this.notificationContainer.css('visibility', 'hidden');
+						_this.isVisible = false;
+						_this.currentOptions = undefined;
+					});
+			};
+			
+			_this.setCloseButton = function(options) {
+				if (!options.duration || options.duration > 5000) {
+					_this.notificationClose.show();
+				} else {
+					_this.notificationClose.hide();
+				}
+			}
+			
+			_this.setAction = function(action) {
+				if (!action) {
+					_this.notificationAction.hide();
+					return;
+				}
+				
+				_this.notificationAction.show();
+				_this.notificationAction.html(action.value);
+				_this.notificationAction.prop("onclick", null).off("click");
+				_this.notificationAction.click(function(e) {
+					if (action.callback) {
+						action.callback(e, action.payload);
+					}
+				});
+			}
+			
+			_this.setText = function(text) {
+				_this.notificationText.html(text);
+			
+			}
+			
+			_this.setIcon = function(type) {
+				_this.notificationIcon.removeClass(
+					'fa-exclamation-circle text-danger fa-info-circle text-primary fa-check-circle text-success');
+			
+				_this.notificationIcon.show();
+				
+				switch(type.toLowerCase()) {
+					case 'info':
+						_this.notificationIcon
+							.addClass(
+								'fa-info-circle text-primary');
+						break;
+					case 'danger':
+						_this.notificationIcon
+							.addClass(
+								'fa-exclamation-circle text-danger');
+						break;
+					case 'success':
+						_this.notificationIcon
+							.addClass(
+								'fa-check-circle text-success');
+						break;
+					default:
+						_this.notificationIcon.hide();
+				}
+			}
+			
+			_this.notifySuccess = function (message, options) {
+				options.type = 'success';
+				_this.notify(message, options);
+			}
+			
+			_this.notifyDanger = function (message, options) {
+				options.type = 'danger';
+				_this.notify(message, options);
+			}
+			
+			_this.notifyInfo = function (message, options) {
+				options.type = 'info';
+				_this.notify(message, options);
+			}
+			
+			_this.init = function() {
+				_this.notificationClose.click(_this.dismiss);
+			}
+		}
+		
+		var notification;
+		
+		$(function() {
+			notification = new Notification();
+			notification.init();
+		});
+	
+	</script>
+</body>
+
+</html>
